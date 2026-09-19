@@ -1,5 +1,3 @@
-# Vibe Coding Class
-
 Explore the apps built in this class. Click an app link or scan its QR code with your phone to open it.
 
 | App | Description | QR code |
