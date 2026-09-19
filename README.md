@@ -1,3 +1,12 @@
+---
+layout: astro
+permalink: /
+---
+
+Scan to open the [class homepage](https://chasinspin.github.io/VibeCodingClass/).
+
+[![Scan to open the Vibe Coding Class homepage](https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=12&data=https%3A%2F%2Fchasinspin.github.io%2FVibeCodingClass%2F)](https://chasinspin.github.io/VibeCodingClass/)
+
 Explore the apps built in this class. Click an app link or scan its QR code with your phone to open it.
 
 | App | Description | QR code |

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#090b1c">
+    <title>VibeCodingClass</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #090b1c; color: #e6e9fa; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at 85% 0%, #723caa38, transparent 48%), radial-gradient(ellipse at 0% 45%, #24749d24, transparent 48%), #090b1c; }
+      body::before { content: ""; position: fixed; inset: 0; pointer-events: none; background-image: radial-gradient(1px 1px at 19px 27px, #ceddff99 98%, transparent), radial-gradient(1px 1px at 97px 113px, #b1a2ff88 98%, transparent), radial-gradient(2px 2px at 211px 71px, #ffffff77 98%, transparent); background-size: 251px 229px, 337px 313px, 479px 397px; }
+      .page { position: relative; max-width: 1160px; margin: auto; padding: 64px 32px 48px; }
+      header { position: relative; padding: 24px 0 42px; margin-bottom: 36px; border-bottom: 1px solid #b3a1ff33; }
+      header::after { content: ""; position: absolute; right: 22px; top: -7px; width: 115px; height: 115px; border-radius: 50%; background: radial-gradient(circle at 30% 28%, #a49be5, #5654a3 35%, #222347 68%); box-shadow: -10px -5px 45px #8c78ff22, inset -20px -10px 25px #07091c; z-index: -1; }
+      h1 { margin: 0; font-size: clamp(30px, 6vw, 56px); letter-spacing: -.045em; line-height: 1.2; }
+      h1 a { color: #f3efff; text-shadow: 0 0 35px #aa8bff55; text-decoration: none; }
+      a { color: #acccff; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+      a:hover { color: #e0caff; }
+      a:focus-visible { outline: 3px solid #c8adff; outline-offset: 6px; border-radius: 3px; }
+      p { line-height: 1.75; }
+      main > p:first-child { margin: 0 0 16px; color: #b9c0dd; }
+      main > p:nth-child(2) { display: inline-flex; margin: 0 0 22px; padding: 14px; border: 1px solid #bba6ff55; border-radius: 22px; background: linear-gradient(135deg, #afa0ff18, #75cfff0a); box-shadow: 0 0 50px #9878ff15; }
+      main > p:nth-child(3) { margin: 0 0 28px; max-width: 760px; color: #c5cbe1; font-size: 17px; }
+      img { display: block; width: 176px; height: 176px; max-width: 100%; object-fit: contain; background: white; border: 8px solid white; border-radius: 10px; }
+      table { width: 100%; border-spacing: 0; border: 1px solid #a995ff33; border-radius: 20px; overflow: hidden; background: #11152be8; box-shadow: 0 24px 70px #00000033; }
+      th { padding: 18px 24px; color: #b7afdf; background: #aaa0ff0b; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; text-align: left; }
+      td { padding: 26px 24px; border-top: 1px solid #a995ff26; line-height: 1.7; color: #c5cbe1; }
+      td:first-child { width: 32%; }
+      td:first-child a:first-child { color: #e4dcff; font-size: 19px; font-weight: 700; }
+      td:last-child { width: 224px; }
+      tbody tr:hover { background: #a995ff08; }
+      main > p:last-child { margin-top: 28px; font-size: 13px; color: #a4adc9; }
+      @media (max-width: 640px) {
+        .page { padding: 32px 18px; }
+        header { padding-bottom: 28px; }
+        header::after { width: 75px; height: 75px; right: 0; opacity: .6; }
+        table, tbody, tr, td { display: block; width: 100%; }
+        thead { display: none; }
+        tbody tr { padding: 22px; }
+        tbody tr + tr { border-top: 1px solid #a995ff33; }
+        td, td:first-child, td:last-child { width: 100%; border: 0; padding: 0; }
+        td + td { margin-top: 16px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header><h1><a href="{{ '/' | relative_url }}">VibeCodingClass</a></h1></header>
+      <main>{{ content }}</main>
+    </div>
+  </body>
+</html>
