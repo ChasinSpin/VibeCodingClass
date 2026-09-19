@@ -4,25 +4,37 @@ const KEY = 'still-seizure-journal-v1';
 const classifications = ['Less', 'Typical', 'More', 'Alarming'];
 let loadFailed = false;
 let entries = [], demo = false, samples = [], range = 30, editingId = null, deletingId = null, toastTimer;
-try {
-  const saved = JSON.parse(localStorage.getItem(KEY) || '[]');
-  if (!Array.isArray(saved) || saved.some(e => !e || typeof e.id !== 'string' || !Number.isFinite(Date.parse(e.timestamp)) || !classifications.includes(e.severity) || typeof e.location !== 'string' || typeof e.notes !== 'string')) throw new Error('Invalid journal');
-  entries = saved;
-} catch (error) {
-  loadFailed = true;
-  setTimeout(() => toast('Your saved journal could not be loaded. Please keep this browser’s data and try again.'), 100);
-}
+const journal = new JournalStorage();
+let journalReady = false, saving = false;
 const dateLabel = (date, opts = {}) => new Date(date).toLocaleDateString(undefined, { month:'short', day:'numeric', ...opts });
 const timeLabel = date => new Date(date).toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
 const localTime = (date = new Date()) => new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0,16);
 const escapeHTML = str => String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const data = () => (demo ? samples : entries).slice().sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp));
 function toast(message) { $('#toast').textContent = message; $('#toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').hidden = true, 4500); }
-function persist(next) {
-  if (demo) { samples = next; return true; }
-  if (loadFailed) { toast('Saving is paused because the existing journal could not be read. No saved data has been overwritten.'); return false; }
-  try { localStorage.setItem(KEY, JSON.stringify(next)); entries = next; return true; }
-  catch { $('#form-error').textContent = 'Unable to save in this browser. Free up storage or export your journal first.'; toast('Could not save changes. Your existing entries have been kept.'); return false; }
+async function persist(record, deletedId = null) {
+  if (!journalReady || loadFailed || saving) { toast('Your journal is not ready to save yet.'); return false; }
+  if (demo) {
+    samples = samples.filter(e => e.id !== (record?.id || deletedId));
+    if (record) samples.push(record);
+    return true;
+  }
+  saving = true;
+  $('#record-section').inert = true;
+  $('#confirm-delete').disabled = true;
+  try {
+    entries = await journal.write(record, deletedId);
+    updateStorageStatus();
+    return true;
+  } catch {
+    $('#form-error').textContent = 'Unable to save. Keep this app open, export a copy, and check available device storage.';
+    toast('Changes were not saved. Your entry is still in the form.');
+    return false;
+  } finally {
+    saving = false;
+    $('#record-section').inert = false;
+    $('#confirm-delete').disabled = false;
+  }
 }
 function render() {
   const records = data(), now = new Date(), last = records.find(e => new Date(e.timestamp) <= now);
@@ -123,7 +135,7 @@ $('#event-form').addEventListener('focusin', () => {
 $('#mode-now').onclick = captureNow;
 $('#mode-manual').onclick = () => { setMode(true); $('#event-time').focus(); };
 $('#event-time').oninput = () => setMode(true);
-$('#event-form').onsubmit = event => {
+$('#event-form').onsubmit = async event => {
   event.preventDefault();
   const timestamp = manualTime ? new Date($('#event-time').value) : capturedTime || new Date();
   if (!Number.isFinite(timestamp.getTime()) || timestamp > new Date()) {
@@ -132,9 +144,7 @@ $('#event-form').onsubmit = event => {
   }
   const wasEditing = Boolean(editingId);
   const record = {id:editingId || crypto.randomUUID(), timestamp:timestamp.toISOString(), severity:document.querySelector('[name="severity"]:checked').value, location:$('#event-location').value.trim(), notes:$('#event-notes').value.trim()};
-  const next = data().filter(e => e.id !== editingId);
-  next.push(record);
-  if (persist(next)) {
+  if (await persist(record)) {
     resetForm();
     render();
     if (event.submitter?.id === 'save-close' && !demo) {
@@ -148,13 +158,13 @@ $('#event-form').onsubmit = event => {
   }
 };
 $('#keep-open').onclick = () => $('#saved-dialog').close();
-$('#history-body').onclick = event => {const edit=event.target.closest('[data-edit]'),del=event.target.closest('[data-delete]');if(edit)openForm(edit.dataset.edit);if(del){deletingId=del.dataset.delete;$('#delete-dialog').showModal();}};
+$('#history-body').onclick = event => {if(saving)return;const edit=event.target.closest('[data-edit]'),del=event.target.closest('[data-delete]');if(edit)openForm(edit.dataset.edit);if(del){deletingId=del.dataset.delete;$('#delete-dialog').showModal();}};
 $('#cancel-delete').onclick=()=>$('#delete-dialog').close();
-$('#confirm-delete').onclick=()=>{if(persist(data().filter(e=>e.id!==deletingId))){$('#delete-dialog').close();render();toast('Entry deleted.');}};
+$('#confirm-delete').onclick=async()=>{if(await persist(null,deletingId)){$('#delete-dialog').close();render();toast('Entry deleted.');}};
 $('#search').oninput=()=>renderHistory();$('#severity-filter').onchange=()=>renderHistory();
 for(const button of document.querySelectorAll('[data-days]')) button.onclick=()=>{range=Number(button.dataset.days);document.querySelectorAll('[data-days]').forEach(b=>b.classList.toggle('selected',b===button));renderChart(data());};
-$('#preview-demo').onclick=()=>{resetForm();demo=true;samples=[1,3,4,7,7,10,13,16,19,22,24,28].map((days,i)=>{const date=new Date();date.setDate(date.getDate()-days);date.setHours(9+i%8,15,0,0);return {id:`sample-${i}`,timestamp:date.toISOString(),severity:classifications[[1,0,1,2,1,0,1,3,1,0,2,1][i]],location:['At home','Bedroom','Living room','At work'][i%4],notes:['Rested afterward.','Added later from my notes.','A typical event for me.','Noticed after waking up.'][i%4]};});render();};
-$('#exit-demo').onclick=()=>{resetForm();demo=false;$('#search').value='';$('#severity-filter').value='';render();};
+$('#preview-demo').onclick=()=>{if(saving||!journalReady)return;resetForm();demo=true;samples=[1,3,4,7,7,10,13,16,19,22,24,28].map((days,i)=>{const date=new Date();date.setDate(date.getDate()-days);date.setHours(9+i%8,15,0,0);return {id:`sample-${i}`,timestamp:date.toISOString(),severity:classifications[[1,0,1,2,1,0,1,3,1,0,2,1][i]],location:['At home','Bedroom','Living room','At work'][i%4],notes:['Rested afterward.','Added later from my notes.','A typical event for me.','Noticed after waking up.'][i%4]};});render();};
+$('#exit-demo').onclick=()=>{if(saving)return;resetForm();demo=false;$('#search').value='';$('#severity-filter').value='';render();};
 $('#export').onclick=()=>{const csvCell=value=>`"${String(value).replace(/^[=+@\-\t\r]/,"'$&").replace(/"/g,'""')}"`;const rows=[['Timestamp (ISO 8601)','Local date','Local time','Classification','Location','Notes'],...data().map(e=>[e.timestamp,dateLabel(e.timestamp,{year:'numeric'}),timeLabel(e.timestamp),e.severity,e.location,e.notes])];const blob=new Blob(['\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`still-${demo?'sample-':''}journal-${localTime().slice(0,10)}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Journal exported.');};
 $('#history-nav').onclick=()=>{$('#history-section').scrollIntoView({behavior:'smooth',block:'start'});$('.nav.active').classList.remove('active');$('#history-nav').classList.add('active');$('#page-label').textContent='Seizure history';};
 $('#overview-nav').onclick=()=>{window.scrollTo({top:0,behavior:'smooth'});$('.nav.active').classList.remove('active');$('#overview-nav').classList.add('active');$('#page-label').textContent='Overview';};
@@ -163,3 +173,17 @@ resetForm();render();setInterval(() => {
   $('#event-time').max = localTime();
   render();
 },60000);
+
+async function initializeJournal() {
+  try {
+    entries = await journal.open(() => localStorage.getItem(KEY));
+    journalReady = true;
+    $('#record-section').inert = false;
+    $('#journal-status').textContent = 'Journal ready · records saved on this device';
+    render();
+  } catch {
+    loadFailed = true;
+    $('#journal-status').textContent = 'Your journal could not be opened. Existing records have not been overwritten. Close other app windows and reload to retry.';
+  }
+}
+initializeJournal();
