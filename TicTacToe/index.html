@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#080b1c" />
+    <title>Cosmic Tic-Tac-Toe</title>
+    <meta name="description" content="Play Cosmic Tic-Tac-Toe against Nova Bot or a friend, even offline." />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+    <script src="pwa.js" defer></script>
+  </head>
+  <body>
+    <div class="stars stars-one" aria-hidden="true"></div>
+    <div class="stars stars-two" aria-hidden="true"></div>
+
+    <main class="app">
+      <header class="hero">
+        <div class="eyebrow"><span class="signal"></span> GALACTIC ARCADE <span class="eyebrow-line"></span> 001</div>
+        <h1>Cosmic <span>Tic-Tac-Toe</span></h1>
+        <p>Claim three sectors in a row to rule the galaxy.</p>
+      </header>
+
+      <section class="game-shell" aria-label="Tic-tac-toe game">
+        <div class="top-bar">
+          <div class="mode-switch" role="group" aria-label="Game mode">
+            <button class="mode active" type="button" data-mode="computer" aria-pressed="true">VS COMPUTER</button>
+            <button class="mode" type="button" data-mode="friend" aria-pressed="false">2 PLAYERS</button>
+          </div>
+          <button class="reset-scores" type="button" id="resetScores" title="Reset all scores">↺ <span>RESET SCORES</span></button>
+        </div>
+
+        <div class="arena">
+          <div class="player-card player-x current" id="playerX">
+            <div class="player-symbol" aria-hidden="true">✕</div>
+            <div class="player-info"><span class="player-label">PLAYER 1</span><strong>Commander X</strong></div>
+            <div class="score" id="scoreX" aria-label="Player 1 wins">0</div>
+          </div>
+
+          <div class="battlefield">
+            <div class="board-heading"><span>SECTOR 01 / 09</span><span class="coordinates">✦ DEEP SPACE ✦</span></div>
+            <div class="board-frame">
+              <div class="board" id="board" role="grid" aria-label="Tic-tac-toe board">
+                <button class="cell" type="button" data-index="0" aria-label="Top left, empty"></button>
+                <button class="cell" type="button" data-index="1" aria-label="Top middle, empty"></button>
+                <button class="cell" type="button" data-index="2" aria-label="Top right, empty"></button>
+                <button class="cell" type="button" data-index="3" aria-label="Middle left, empty"></button>
+                <button class="cell" type="button" data-index="4" aria-label="Center, empty"></button>
+                <button class="cell" type="button" data-index="5" aria-label="Middle right, empty"></button>
+                <button class="cell" type="button" data-index="6" aria-label="Bottom left, empty"></button>
+                <button class="cell" type="button" data-index="7" aria-label="Bottom middle, empty"></button>
+                <button class="cell" type="button" data-index="8" aria-label="Bottom right, empty"></button>
+              </div>
+            </div>
+            <div class="board-footer"><span>◉ SYSTEM ONLINE</span><span>3 × 3 GRID</span></div>
+          </div>
+
+          <div class="player-card player-o" id="playerO">
+            <div class="player-symbol" aria-hidden="true">◯</div>
+            <div class="player-info"><span class="player-label" id="opponentLabel">AI OPPONENT</span><strong id="opponentName">Nova Bot</strong></div>
+            <div class="score" id="scoreO" aria-label="Opponent wins">0</div>
+          </div>
+        </div>
+
+        <div class="game-bottom">
+          <div class="status-wrap"><span class="status-icon" aria-hidden="true">✦</span><div><span class="status-caption">MISSION STATUS</span><p id="status" role="status" aria-live="polite">Your turn, Commander X</p></div></div>
+          <button id="newRound" class="new-round" type="button">NEW ROUND <span aria-hidden="true">↗</span></button>
+        </div>
+      </section>
+      <footer>THE UNIVERSE IS YOURS TO CONQUER <span>✦</span> MAY THE BEST PILOT WIN</footer>
+    </main>
+  </body>
+</html>
